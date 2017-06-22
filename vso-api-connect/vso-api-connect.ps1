@@ -1,4 +1,4 @@
-﻿Get-ProjectRepoUrl {
+﻿function Get-ProjectRepoUrl {
     param (
         [string] $account,
         [string] $projectName
@@ -8,7 +8,7 @@
     return $projectRepoUrl;
 }
 
-Get-BasicAuthorizationHeaders {
+function Get-BasicAuthorizationHeaders {
     param (
         [string] $altCredUsername,
         [string] $altCredPassword
@@ -21,16 +21,16 @@ Get-BasicAuthorizationHeaders {
     return $headers;
 }
 
-Get-UriGetCallResult {
+function Get-UriGetCallResult {
     param (
         [uri] $uri,
-        $headers
+        [hashtable] $headers
     )
     $result = Invoke-RestMethod -Uri $uri -Headers $headers -Method Get;
     return $result;
 }
 
-Get-QueryString {
+function Get-QueryString {
     param(
         $queryParameters
     )
@@ -44,11 +44,47 @@ Get-QueryString {
     return $queryString;
 }
 
-Get-BuildUri {
+function Get-OperationTypeSubUrl {
     param (
-        [string] $projectRepoUrl,
-        $queryParameters
+        [string] $operationType
     )
-    $queryString = Get-QueryString -queryParameters $queryParameters;
-    $buildSubUrl = "/_apis/build/builds" + $queryString;
+
+    $subUrl = "";
+    switch ($operationType)
+    {                
+        "Build" { $subUrl = "/_apis/build/builds"; }
+        Default { $subUrl = ""; } 
+    }
+    return $subUrl;
 }
+
+function Get-ResultsUri {
+    param (
+        [string] $account,
+        [string] $projectName,
+        [string] $operationType,
+        [hashtable] $queryParameters,
+        [string] $extraUrl
+    )
+
+    $projectRepoUrl = Get-ProjectRepoUrl -account $account -projectName $projectName;
+    
+    $subUrl = Get-OperationTypeSubUrl -operationType $operationType;
+    $queryString = Get-QueryString -queryParameters $queryParameters;    
+    [uri] $uri =  ("{0}{1}{2}{3}" -f $projectRepoUrl, $subUrl, $extraUrl, $queryString);
+
+    return uri; 
+}
+
+$altCredUsername = "";
+$altCredPassword = "";
+$headers = Get-BasicAuthorizationHeaders -altCredUsername $altCredUsername -altCredPassword $altCredPassword;
+
+$account = "";
+$projectName = "";
+$operationType = "";
+$queryParameters = @{};
+$extraUrl = "";
+$uri = Get-ResultsUri -account $account -projectName $projectName -operationType $operationType -queryParameters $queryParameters -extraUrl $extraUrl;
+
+$results = Get-UriGetCallResult -uri $uri -headers $headers;
