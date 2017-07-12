@@ -31,8 +31,8 @@ function Get-UriGetCallResult {
 }
 
 function Get-QueryString {
-    param(
-        $queryParameters
+    param (
+        [hashtable] $queryParameters
     )
     
     $queryString = "";
@@ -68,9 +68,8 @@ function Get-ResultsUri {
     )
 
     $projectRepoUrl = Get-ProjectRepoUrl -account $account -projectName $projectName;
-    
     $subUrl = Get-OperationTypeSubUrl -operationType $operationType;
-    $queryString = Get-QueryString -queryParameters $queryParameters;    
+    $queryString = Get-QueryString -queryParameters $queryParameters;
     [uri] $uri =  ("{0}{1}{2}{3}" -f $projectRepoUrl, $subUrl, $extraUrl, $queryString);
 
     return uri; 
